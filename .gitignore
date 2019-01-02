@@ -1,5 +1,5 @@
+*.dSYM/
 .DS_Store
 .tag*
 bin/
-test.dSYM/
 tmp/

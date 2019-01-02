@@ -16,11 +16,15 @@ LDFLAGS += -L$(PALISADE_DIR)/bin/lib -L$(PALISADE_DIR)/third-party/lib
 LDFLAGS += -dinamiclib -lPALISADEtrapdoor -lPALISADEwip -lPALISADEpke -lPALISADEcore
 
 
-all: test
+all: test_cc test_vec
 
 clean:
-	rm test
+	rm -rf bin/test_* *.dSYM
 
-test: test.cpp
-	$(CXX) test.cpp -o $@ $(CFLAGS) $(LDFLAGS)
-	mv test bin/
+test_cc: test_cc.cpp
+	$(CXX) $^ -o $@ $(CFLAGS) $(LDFLAGS)
+	mv $@ bin/
+
+test_vec: test_vec.cpp
+	$(CXX) $^ -o $@ $(CFLAGS) $(LDFLAGS)
+	mv $@ bin/

@@ -13,7 +13,12 @@ using namespace lbcrypto;
 
 int main() {
   std::cout << "STEP 1: Contexts Creation" << "\n";
-  CryptoContext<Poly> cc = CryptoContextHelper::getNewContext("BFV1");
+  uint64_t p = 65537;
+  double sigma = 3.2;
+  double rootHermiteFactor = 1.006;
+  CryptoContext<DCRTPoly> cc =
+      CryptoContextFactory<DCRTPoly>::genCryptoContextBFVrns(
+          p, rootHermiteFactor, sigma, 0, 1, 0, OPTIMIZED,3);
   cc->Enable(ENCRYPTION);
   cc->Enable(SHE);
   cc->Enable(PRE);
@@ -21,50 +26,36 @@ int main() {
 
   std::cout << "STEP 2: Key-generation" << "\n";
   std::string ccPath = "tmp/cc";
-  LPKeyPair<Poly> kp = cc->KeyGen();
+  LPKeyPair<DCRTPoly> kp = cc->KeyGen();
 
   std::cout << "STEP 3: Encryption" << "\n";
-  std::vector<int> intvec = {0, 1, 2};
+  int32_t n = cc->GetCryptoParameters()->GetElementParams()->GetCyclotomicOrder()/2;
+  std::vector<int32_t> index = {0, 1, 2, 3, 4};
+  cc->EvalAtIndexKeyGen(kp.secretKey, index);
+  std::vector<uint64_t> intvec = {1, 2, 4, 8, 16};
   std::cout << "   Init data: ";
-  std::vector<CiphertextImpl<Poly>> ctxtvec;
-  for (auto i = intvec.begin(); i < intvec.end(); i++) {
+  for (auto i = intvec.begin(); i < intvec.end(); i++)
     std::cout << *i << " ";
-    ctxtvec.push_back(*(cc->Encrypt(kp.publicKey,
-                                    cc->MakeIntegerPlaintext(*i))));
-  }
   std::cout << "\n";
+  // intvec.resize(n);
+  // intvec[n-1] = n-1;
+  // intvec[n-2] = n-2;
+  // intvec[n-3] = n-3;
+  Ciphertext<DCRTPoly> cintvec = cc->Encrypt(kp.publicKey,
+                                             cc->MakePackedPlaintext(intvec));
 
-  std::cout << "STEP 4: Serialization & Deserialization" << "\n";
-  Serialized ser;
-  SerializeVector<CiphertextImpl<Poly>>("ctxtvec", "CiphertextImpl",
-                                        ctxtvec, &ser);
-  SerialItem::ConstMemberIterator itr = ser.FindMember("ctxtvec");
-  if (itr == ser.MemberEnd()) {
-    std::cout << "   Can't find ctxtvec" << "\n";
-    return 1;
-  }
-  ctxtvec.clear();
-  // Does not work
-  DeserializeVector("ctxtvec", "CiphertextImpl", itr, &ctxtvec);
+  std::cout << "STEP 4: Calculation" << "\n";
+  Ciphertext<DCRTPoly> sum = cc->EvalAtIndex(cintvec, index[0]);
+  for (int i = 1; i < index.size(); i++)
+    sum = cc->EvalAdd(sum, cc->EvalAtIndex(cintvec, index[i]));
 
-  std::cout << "STEP 5: Calculation" << "\n";
-  int num = 1;
-  Plaintext ptxt = cc->MakeIntegerPlaintext(num);
-  std::vector<Ciphertext<Poly>> results;
-  for (auto i = ctxtvec.begin(); i < ctxtvec.end(); ++i) {
-    Ciphertext<Poly> ctxt = cc->EvalAdd(Ciphertext<Poly>(&(*i)), ptxt);
-    results.push_back(ctxt);
-  }
-
-  std::cout << "STEP 6: Decryption" << "\n";
+  std::cout << "STEP 5: Decryption" << "\n";
   Plaintext result;
-  std::cout << "   Init+" << num << " data: {";
-  std::cout << results.size() << "\n";
-  for (auto i = results.begin(); i < results.end(); ++i) {
-    cc->Decrypt(kp.secretKey, (*i), &result);
-    std::cout << result << " ";
-  }
-  std::cout << "\n";
+  cc->Decrypt(kp.secretKey, cintvec, &result);
+  // result->SetLength(5);
+  std::cout << "   Decrypted data: " << result << "\n";
+  cc->Decrypt(kp.secretKey, sum, &result);
+  std::cout << "   Sum: " << result << "\n";
 
   std::cout << "--- DONE ---" << "\n";
 

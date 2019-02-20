@@ -1,5 +1,5 @@
-PPGC_DIR:=../PPGC
-PALISADE_DIR=$(PPGC_DIR)/external-libraries/palisade-student-edition
+PPGSS_DIR:=../PPGSS
+PALISADE_DIR=$(PPGSS_DIR)/external-libraries/palisade-student-edition
 
 CXX := /usr/local/opt/llvm/bin/clang++
 

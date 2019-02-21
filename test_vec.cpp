@@ -45,41 +45,53 @@ int main() {
 
   std::cout << "STEP 4: EvalAtIndex" << "\n";
   Ciphertext<DCRTPoly> mult = cc->EvalMult(cintvec, cintvec);
-  const std::vector<int> index1 = {0, 1, 2, 3, 4};
+  const std::vector<int> index1 = {0, 1, 2, 3, 4, -4, -3, -2, -1};
   cc->EvalAtIndexKeyGen(kp.secretKey, index1);
   Ciphertext<DCRTPoly> sum = cc->EvalAtIndex(cintvec, index1[0]);
   for (int i = 1; i < index1.size(); i++)
     sum = cc->EvalAdd(sum, cc->EvalAtIndex(cintvec, index1[i]));
 
-  // std::cout << "STEP 5: EvalAutomorphism" << "\n";
-  // const std::vector<usint> index2 = {1, 3, 5, 7, 9};
-  // auto evalKeys = cc->EvalAutomorphismKeyGen(kp.secretKey, index2);
-  // auto permuted1 = cc->EvalAutomorphism(cintvec, 1, *evalKeys);
-  // auto permuted3 = cc->EvalAutomorphism(cintvec, 3, *evalKeys);
-  // auto permuted5 = cc->EvalAutomorphism(cintvec, 5, *evalKeys);
-  // auto permuted7 = cc->EvalAutomorphism(cintvec, 7, *evalKeys);
-  // auto permuted9 = cc->EvalAutomorphism(cintvec, 9, *evalKeys);
+  std::cout << "STEP 6: EvalAutomorphism" << "\n";
+  const std::vector<usint> index2 = {1, 3, 5, 7, 9};
+  auto evalKeys = cc->EvalAutomorphismKeyGen(kp.secretKey, index2);
+  auto permuted1 = cc->EvalAutomorphism(cintvec, 1, *evalKeys);
+  auto permuted3 = cc->EvalAutomorphism(cintvec, 3, *evalKeys);
+  auto permuted5 = cc->EvalAutomorphism(cintvec, 5, *evalKeys);
+  auto permuted7 = cc->EvalAutomorphism(cintvec, 7, *evalKeys);
+  auto permuted9 = cc->EvalAutomorphism(cintvec, 9, *evalKeys);
+
+  std::cerr << "STEP 7: Reverse operation" << "\n";
+  cintvec = cc->EvalAtIndex(cintvec, 3);
+  cintvec = cc->EvalAtIndex(cintvec, -3);
 
   std::cout << "FINAL STEP: Decryption" << "\n";
   Plaintext result;
   cc->Decrypt(kp.secretKey, mult, &result);
   result->SetLength(5);
-  std::cout << "   Multiplicated data : " << result << "\n";
+  std::cout << "   Multiplicated vec : " << result << "\n";
   cc->Decrypt(kp.secretKey, sum, &result);
   result->SetLength(5);
-  std::cout << "   Decrypted data     : " << result << "\n";
-  std::cout << "   Sum                : "
+  std::cout << "   Sum vec           : " << result << "\n";
+  std::cout << "   Sum               : "
             << result->GetPackedValue()[0] << "\n";
-  // cc->Decrypt(kp.secretKey, permuted1, &result);
-  // std::cout << "   Permuted data 1:  " << result << "\n";
-  // cc->Decrypt(kp.secretKey, permuted3, &result);
-  // std::cout << "   Permuted data 3:  " << result << "\n";
-  // cc->Decrypt(kp.secretKey, permuted5, &result);
-  // std::cout << "   Permuted data 5:  " << result << "\n";
-  // cc->Decrypt(kp.secretKey, permuted7, &result);
-  // std::cout << "   Permuted data 7:  " << result << "\n";
-  // cc->Decrypt(kp.secretKey, permuted9, &result);
-  // std::cout << "   Permuted data 9:  " << result << "\n";
+  cc->Decrypt(kp.secretKey, permuted1, &result);
+  result->SetLength(5);
+  std::cout << "   Permuted data 1   : " << result << "\n";
+  cc->Decrypt(kp.secretKey, permuted3, &result);
+  result->SetLength(5);
+  std::cout << "   Permuted data 3   : " << result << "\n";
+  cc->Decrypt(kp.secretKey, permuted5, &result);
+  result->SetLength(5);
+  std::cout << "   Permuted data 5   : " << result << "\n";
+  cc->Decrypt(kp.secretKey, permuted7, &result);
+  result->SetLength(5);
+  std::cout << "   Permuted data 7   : " << result << "\n";
+  cc->Decrypt(kp.secretKey, permuted9, &result);
+  result->SetLength(5);
+  std::cout << "   Permuted data 9   : " << result << "\n";
+  cc->Decrypt(kp.secretKey, cintvec, &result);
+  result->SetLength(5);
+  std::cout << "   cintvec           : " << result << "\n";
   std::cout << "===== DONE =====" << "\n";
 
   return 0;

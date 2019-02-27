@@ -60,9 +60,10 @@ int main() {
   auto permuted7 = cc->EvalAutomorphism(cintvec, 7, *evalKeys);
   auto permuted9 = cc->EvalAutomorphism(cintvec, 9, *evalKeys);
 
-  std::cerr << "STEP 7: Reverse operation" << "\n";
-  cintvec = cc->EvalAtIndex(cintvec, 3);
-  cintvec = cc->EvalAtIndex(cintvec, -3);
+  std::cerr << "STEP 7: Undefined operation" << "\n";
+  auto cintvec1 = cc->EvalAtIndex(cintvec, 2);
+  auto cintvec2 = cc->EvalAtIndex(cintvec, -2);
+  auto cintvec3 = cc->EvalAdd(cintvec1, cintvec2);
 
   std::cout << "FINAL STEP: Decryption" << "\n";
   Plaintext result;
@@ -89,9 +90,15 @@ int main() {
   cc->Decrypt(kp.secretKey, permuted9, &result);
   result->SetLength(5);
   std::cout << "   Permuted data 9   : " << result << "\n";
-  cc->Decrypt(kp.secretKey, cintvec, &result);
+  cc->Decrypt(kp.secretKey, cintvec1, &result);
   result->SetLength(5);
-  std::cout << "   cintvec           : " << result << "\n";
+  std::cout << "   cintvec1          : " << result << "\n";
+  cc->Decrypt(kp.secretKey, cintvec2, &result);
+  result->SetLength(5);
+  std::cout << "   cintvec2          : " << result << "\n";
+  cc->Decrypt(kp.secretKey, cintvec3, &result);
+  result->SetLength(5);
+  std::cout << "   cintvec3          : " << result << "\n";
   std::cout << "===== DONE =====" << "\n";
 
   return 0;

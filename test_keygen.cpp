@@ -54,6 +54,14 @@ int main() {
     ERRLOG("Failed to serialize cc");
     exit(1);
   }
+  if (!SerializableHelper::WriteSerializationToFile(ser, "cc")) {
+    ERRLOG("Failed to write serialized cc");
+    exit(1);
+  }
+  if (!SerializableHelper::ReadSerializationFromFile("cc", &ser, true)) {
+    ERRLOG("Failed to read serialized cc");
+    exit(1);
+  }
   CryptoContext<DCRTPoly> cc_copy =
       CryptoContextFactory<DCRTPoly>::DeserializeAndCreateContext(ser);
 
